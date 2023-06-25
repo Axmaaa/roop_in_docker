@@ -1,0 +1,26 @@
+# Install dependencies
+FROM python:3.10 AS basic-install-dependencies
+
+RUN git clone https://github.com/s0md3v/roop
+WORKDIR /roop
+RUN git checkout 4867f356ef4d40e659b4ee476043d4fa4c6cad28
+
+RUN apt-get update
+RUN apt-get install -y ffmpeg
+
+RUN pip3 cache purge
+RUN pip3 install -r requirements.txt
+
+# Copy files
+FROM install-dependencies AS basic-copy-files
+COPY inswapper_128.onnx .
+ENV BUFFALO_DIR=/root/.insightface/models
+COPY buffalo_l.zip $BUFFALO_DIR/
+RUN unzip $BUFFALO_DIR/buffalo_l.zip -d $BUFFALO_DIR/buffalo_l
+
+# Basic installation
+FROM copy-files AS basic-version
+
+# Basic run
+FROM basic-version AS roop-basic
+ENTRYPOINT ["bash"]
